@@ -374,9 +374,9 @@ test( collatz_list_51,
  * Recall that we can represent sets as lists that contain no duplicate
  * elements. Suppose we have two such lists, _S0_ and _S1_. 
  *
- * Write a predicate =|subset / 2|= that takes two _S0_ and _S1_ and succeeds
- * if _S0_ is a subset of _S1_; that is, if every element of _S0_ is also an
- * element of _S1_.
+ * Write a predicate =|my_subset / 2|= that takes two _S0_ and _S1_ and
+ * succeeds if _S0_ is a subset of _S1_; that is, if every element of _S0_ is
+ * also an element of _S1_.
  *
  * Recall that the empty set (represented by the empty list) is a subset of
  * every set, including itself.
@@ -387,10 +387,17 @@ test( collatz_list_51,
  * For checking membership, you should use the built-in =|member / 2|=
  * predicate. This performs the same job as the =|element / 2|= example
  * provided in class.
+ *
+ *
+ * UPDATE (2013 - 04 - 15): Some students have noted that =|subset / 2|= is
+ * the name of a predicate provided by SWI Prolog and auto-loaded when the
+ * interpreter is started. This means that all of the unit tests will pass,
+ * even when you have not defined any of your own code. Thus, the name of the
+ * predicate has been renamed to =|my_subset / 2|=.
  */
 
 /**
- * subset( + S0 : list, + S1 : list )
+ * my_subset( + S0 : list, + S1 : list )
  *
  * Succeeds if S0 is a subset of S1. 
  *
@@ -402,62 +409,69 @@ test( collatz_list_51,
 
 
 
-:- begin_tests( subset ).
+:- begin_tests( my_subset ).
 
-test( subset_empty_empty,
+test( my_subset_empty_empty,
       true
     ) :-
-    subset( [], [] ),
+    my_subset( [], [] ),
     !.
 
-test( subset_sameorder_true,
+test( my_subset_sameorder_true,
       true 
     ) :-
-    subset( [ a, b ], [ a, b, c, d ] ),
+    my_subset( [ a, b ], [ a, b, c, d ] ),
     !.
 
-test( subset_unordered_true,
+test( my_subset_unordered_true,
       true
     ) :-
-    subset( [ a, b, c, d, 2 ], [ 1, 2, d, c, b, a, 3, 4 ] ),
+    my_subset( [ a, b, c, d, 2 ], [ 1, 2, d, c, b, a, 3, 4 ] ),
     !.
 
-test( subset_nonempty_empty,
+test( my_subset_nonempty_empty,
       fail
     ) :-
-    subset( [ 1, 2, c, d ], [] ),
+    my_subset( [ 1, 2, c, d ], [] ),
     !.
 
-test( subset_close_fail,
+test( my_subset_close_fail,
       fail
     ) :-
-    subset( [ a, b, c, d, 2 ], [ 1, 2, c, b, a, 3, 4 ] ),
+    my_subset( [ a, b, c, d, 2 ], [ 1, 2, c, b, a, 3, 4 ] ),
     !.
 
-:- end_tests( subset ).
+:- end_tests( my_subset ).
 
-:- run_tests( subset ).
+:- run_tests( my_subset ).
 
 
 
 /* Problem 2: Intersection
  * ===========================================================================
  *
- * Write a predicate =|intersection / 3|= that takes three sets (represented
- * as lists, see =|subset / 2|=) _S0_, _S1_, and _S2_ and succeeds if _S2_ is
- * the intersection of _S0_ and _S1_ (i.e., all elements that are contained in
- * both _S0_ and _S1_ are also contained in _S2_).
+ * Write a predicate =|my_intersection / 3|= that takes three sets
+ * (represented as lists, see =|my_subset / 2|=) _S0_, _S1_, and _S2_ and
+ * succeeds if _S2_ is the intersection of _S0_ and _S1_ (i.e., all elements
+ * that are contained in both _S0_ and _S1_ are also contained in _S2_).
  *
  * Again, you should use =|member / 2|= for performing membership checks.
  *
- * You may assume that _S0_ and _S1_ are ground and that _S3_, on the initial
+ * You may assume that _S0_ and _S1_ are ground and that _S2_, on the initial
  * call, is an unbound variable. With a bit of thought, you should be able to
  * conclude that having a fully reversible intersection predicate would be
  * difficult and not of much value.
+ *
+ *
+ * UPDATE (2013 - 04 - 15): Some students have noted that =|intersection / 3|=
+ * is the name of a predicate provided by SWI Prolog and auto-loaded when the
+ * interpreter is started. This means that all of the unit tests will pass,
+ * even when you have not defined any of your own code. Thus, the name of the
+ * predicate has been renamed to =|my_intersection / 2|=.
  */
 
 /**
- * intersection( + S0 : list, + S1 : list, - S2 : list )
+ * my_intersection( + S0 : list, + S1 : list, - S2 : list )
  *
  * Succeeds if S2 is the intersection of S0 and S1. 
  *
@@ -475,57 +489,57 @@ test( subset_close_fail,
 
 
 
-:- begin_tests( intersection ).
+:- begin_tests( my_intersection ).
 
 
-test( intersection_empty_s0,
+test( my_intersection_empty_s0,
       [ Inter == [] ]
     ) :-
-    intersection( [], [ 1, 2, 3, a, b, c ], Inter ),
+    my_intersection( [], [ 1, 2, 3, a, b, c ], Inter ),
     !.
 
-test( intersection_empty_s1, 
+test( my_intersection_empty_s1, 
       [ Inter == [] ]
     ) :-
-    intersection( [ 1, 2, 3, a, b, c ], [], Inter ),
+    my_intersection( [ 1, 2, 3, a, b, c ], [], Inter ),
     !.
 
-test( intersection_single,
+test( my_intersection_single,
       [ Inter == [ a ] ]
     ) :-
-    intersection( [ 1, 2, 3, a, b, c ], [ a ], Inter ),
+    my_intersection( [ 1, 2, 3, a, b, c ], [ a ], Inter ),
 
     !.
 
-test( intersection_multi,
+test( my_intersection_multi,
       [ SortedInter == [ 3, 4, a, b ] ]
     ) :-
-    intersection( [ a, 1, b, 4, 3, 2 ], [ 4, b, c, d, 3, a ], Inter ),
+    my_intersection( [ a, 1, b, 4, 3, 2 ], [ 4, b, c, d, 3, a ], Inter ),
     % Additional processing so that the comparison above is easier, but the
     % ordering is not forced
     
-    % Ensure that the intersection is ground
+    % Ensure that the my_intersection is ground
     ground( Inter ),
 
-    % Sort the intersection. 
+    % Sort the my_intersection. 
     % WARNING: =|sort / 2|= removed duplicates, so use =|msort / 2 |= here!
     msort( Inter, SortedInter ),
     !.
 
-% Ensure that the full intersection is returned. 
+% Ensure that the full my_intersection is returned. 
 %
 % NOTE: If this fails, make sure that you only one of your recursive clauses
 % can be applied for the same arguments.
-test( intersection_full,
+test( my_intersection_full,
       [ fail ]
     ) :-
-    intersection( [ a, b, c, d ], [ a, b, c, f, g ], [ a, b ] ),
+    my_intersection( [ a, b, c, d ], [ a, b, c, f, g ], [ a, b ] ),
     !.
 
 
-:- end_tests( intersection ).
+:- end_tests( my_intersection ).
 
-:- run_tests( intersection ).
+:- run_tests( my_intersection ).
 
 
 /* Problem 3: Convert between a list of digits and an integer.
