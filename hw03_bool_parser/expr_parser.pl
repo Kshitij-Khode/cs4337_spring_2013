@@ -7,12 +7,12 @@
  * it is advisable to make use of the DCG syntactic sugar.
  *
  * As a reminder, our expression grammar is as follows:
- *     E ::= T { ("+" | "-" ) T }.
+ *     Expr ::= Term { ("+" | "-" ) Term }.
  *      
- *     T ::= F { ( "*" | "/" ) F }.
+ *     Term ::= Factor { ( "*" | "/" ) Factor }.
  *     
- *     F ::= "(" E ")"
- *        |  Digit.
+ *     Factor ::= "(" Expr ")"
+ *             |  Digit.
  */
 
 

@@ -10,12 +10,12 @@
  * document first.
  *
  * As a reminder, our expression grammar is as follows:
- *     E ::= T { ("+" | "-" ) T }.
+ *     Expr ::= Term { ("+" | "-" ) Term }.
  *      
- *     T ::= F { ( "*" | "/" ) F }.
+ *     Term ::= Factor { ( "*" | "/" ) Factor }.
  *     
- *     F ::= "(" E ")"
- *        |  Digit.
+ *     Factor ::= "(" Expr ")"
+ *             |  Digit.
  *
  * Because we are using DCG notation, observe that our predicates are
  * documented using the form 
@@ -26,6 +26,8 @@
  * (making (N - 1) + 2 total) for the input and output lists.
  */
 
+
+:- use_module( library( clpfd ) ).
 
 /**
  * expr( ExprTree) //
@@ -112,4 +114,102 @@ factor( digit( D ) ) -->
 
 digit( D ) :-
 	char_type( D, digit ).
+
+
+
+
+
+% =============================================================================
+% The following is an example expression evaluator that processes the above
+% parse trees. **YOU DO NOT NEED TO WRITE THIS FOR THE HOMEWORK!** This is
+% simply for own edification.
+
+
+evaluate( Input, Tree, Value ) :-
+	expr( Tree, Input, [] ),
+	eval_expr( Tree, Value ).
+
+eval_expr( [ term( T ) | Exprs ], Value ) :-
+	eval_term( T, TermValue ),
+	eval_expr_rest( Exprs, TermValue, Value ).
+
+eval_expr_rest( [ plus( T ) | Exprs ], PartialValue, Value ) :-
+	eval_term( T, TermValue ),
+	NewPartialValue #= PartialValue + TermValue,
+	eval_expr_rest( Exprs, NewPartialValue, Value ).
+
+eval_expr_rest( [ minus( T ) | Exprs ], PartialValue, Value ) :-
+	eval_term( T, TermValue ),
+	NewPartialValue #= PartialValue - TermValue,
+	eval_expr_rest( Exprs, NewPartialValue, Value ).
+
+eval_expr_rest( [], PartialValue, PartialValue ).
+
+
+eval_term( [ factor( F ) | Terms ], Value ) :-
+	eval_factor( F, FactorValue ),
+	eval_term_rest( Terms, FactorValue, Value ).
+
+eval_term_rest( [ multiply( F ) | Terms ], PartialValue, Value ) :-
+	eval_factor( F, FactorValue ),
+	NewPartialValue #= PartialValue * FactorValue,
+	eval_term_rest( Terms, NewPartialValue, Value ).
+
+eval_term_rest( [ divide( F ) | Terms ], PartialValue, Value ) :-
+	eval_factor( F, FactorValue ),
+	NewPartialValue #= PartialValue / FactorValue,
+	eval_term_rest( Terms, NewPartialValue, Value ).
+
+eval_term_rest( [], PartialValue, PartialValue ).
+
+
+eval_factor( paren( E ), Value ) :-
+	eval_expr( E, Value ).
+
+eval_factor( digit( D ), Value ) :-
+	atom_number( D, Value ).
+
+
+
+
+% =============================================================================
+% This is an example of using a DCG to match non-context-free grammars. Here,
+% we are matching a^n b^n c^n, which as noted in class is context-free.
+% However, because we can embed arbitrary Prolog code in our DCGs, we have the
+% full power of a Turing machine at our disposal and can therefore easily
+% check that the number of a's, b's, and c's are all equal.
+
+
+blah -->
+	as( A ),
+	bs( B ),
+	cs( C ),
+	{ A #= B, B #= C }.
+
+as( A ) -->
+	[ 'a' ],
+	as( A1 ),
+	{ A #= A1 + 1 }.
+
+as( 0 ) -->
+	[].
+
+
+bs( B ) -->
+	[ 'b' ],
+	bs( B1 ),
+	{ B #= B1 + 1 }.
+
+bs( 0 ) --> [].
+
+
+
+cs( C ) -->
+	[ 'c' ],
+	cs( C1 ),
+	{ C #= C1 + 1 }.
+
+cs( 0 ) --> [].
+
+
 

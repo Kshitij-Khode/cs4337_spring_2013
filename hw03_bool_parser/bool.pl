@@ -3,7 +3,7 @@
  *
  * CS / CE 4337 Spring 2013 Sections 001, 002
  *
- * Assignment 2:    DCG Parser for a Boolean Expression Grammar
+ * Assignment 3:    DCG Parser for a Boolean Expression Grammar
  * Assigned:        Monday, 2013-04-22
  * Due:             Sunday, 2013-04-28
  * Estimated SLOC:  40
@@ -29,7 +29,10 @@
  * =|rule( Arg0, Arg1, ... , Arg(N - 1) ) //|= (notice the double slash) to
  * indicate that the predicate is actually a DCG rule and therefore takes 
  * (N - 1) + 2 arguments, where the additional 2 arguments are for the input /
- * output lists. 
+ * output lists. In this case, there are no additional arguments, resulting in
+ * the notation 
+ *
+ *     rule_name //
  *
  *
  * Assignment
@@ -140,7 +143,7 @@
 
 
 /**
- * bool_expr // 0
+ * bool_expr //
  *
  * Matches a BoolExpr:
  *     BoolExpr ::= BoolConj { "or" BoolConj }.
@@ -151,7 +154,7 @@
 
 
 /**
- * bool_conj // 0
+ * bool_conj //
  * 
  * Matches a BoolConj:
  *     BoolConj ::= BoolLit { "and" BoolLit }.
@@ -162,7 +165,7 @@
 
 
 /**
- * bool_lit // 0
+ * bool_lit //
  *
  * Matches a BoolLit:
  *     BoolLit ::= [ "not" ] BoolPosLit.
@@ -173,7 +176,7 @@
 
 
 /**
- * bool_pos_lit // 0
+ * bool_pos_lit //
  *
  * Matches a BoolPosLit:
  *     BoolPosLit ::= "true"
@@ -184,3 +187,304 @@
 
 % TODO: WRITE YOUR CODE HERE
 
+
+
+
+% =============================================================================
+% Unit tests
+%
+% Because the grammar is cyclic, we need to define our unit tests after *all*
+% of the rules have been defined. For simplicity, we just run them all in one
+% shot at the end; you can comment out that line and "comment-in" the 
+% =| run_tests / 1 |= lines to run individual suites.
+%
+% The tests for =| bool_expr // 0 |= is fairly exhaustive, since that's our
+% start symbol. The others mainly test their individual features. If
+% something's not working, use =trace=; you can also add unit tests to this
+% batch, of course.
+%
+% Note that the parser, if written properly, will succeed if a prefix of the
+% string is a member of the language; the remainder will be bound to the
+% "output" parameter (named _Out_ below). Because the empty string is not a
+% member of the BoolExpr language (and likewise for the other main rules), it
+% is possible that the prefix may be *part* of a string in the language, but
+% is missing some tokens. In such cases, the parse should fail.
+
+:- begin_tests( bool_expr ).
+
+test( empty,
+	  [ fail ]
+	) :-
+	bool_expr( [], _ ),
+	!.
+
+test( true_case,
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ true ], Out ),
+	!.
+
+test( false_case,
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ false ], Out ),
+	!.
+
+test( true_false,
+	  [ Out == [ false ] ]
+	) :-
+	bool_expr( [ true, false ], Out ),
+	!.
+
+test( true_or_false,
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ true, or, false ], Out ),
+	!.
+
+test( true_or_false_or_true,
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ true, or, false, or, true ], Out ),
+	!.
+
+test( false_and_false,
+	  [ Out == [] ]
+	) :- 
+	bool_expr( [ false, and, false ], Out ),
+	!.
+
+
+test( false_and_false_and_true, 
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ false, and, false, and, true ], Out ),
+	!.
+
+test( false_or_true_and_true,
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ false, or, true, and, true ], Out ),
+	!.
+
+test( true_and_false_or_true_and_false,
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ true, and, false, or, true, and, false ], Out ),
+	!.
+
+test( open_true,
+	  [ fail ]
+	) :-
+	bool_expr( [ '(', true ], _Out ),
+	!.
+
+test( open_true_close,
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ '(', true, ')' ], Out ),
+	!.
+
+test( open_true_and_true_close_or_false,
+	  [ Out == [] ]
+	) :-
+	bool_expr( [ '(', true, and, true, ')', or, false ], Out ),
+	!.
+
+:- end_tests( bool_expr ).
+
+%:- run_tests( bool_expr ).
+
+
+
+
+:- begin_tests( bool_conj ).
+
+test( true_and_true, 
+	  [ Out == [] ]
+	) :-
+	bool_conj( [ true, and, true ], Out ),
+	!.
+
+test( false_and_true_and_true,
+	  [ Out == [] ]
+	) :-
+	bool_conj( [ false, and, true, and, true ], Out ),
+	!.
+
+test( true_and_not_false_and_not_open_not_false_and_true_close,
+	  [ Out == [] ]
+	) :-
+	bool_conj( [ true, and, not, false, and, '(', not, false, and, true, ')' ], Out ),
+	!.
+
+test( not_false_and_not_false,
+	  [ Out == [] ]
+	) :-
+	bool_conj( [ not, false, and, not, false ], Out ),
+	!.
+
+test( true_and_false_and_true,
+	  [ Out == [ or, true ] ]
+	) :-
+	bool_conj( [ true, and, false, or, true ], Out ),
+	!.
+
+test( true_and_false_and,
+	  [ Out == [ and ] ]
+	) :-
+	bool_conj( [ true, and, false, and ], Out ),
+	!.
+
+:- end_tests( bool_conj ).
+
+%:- run_tests( bool_conj ).
+
+
+
+
+:- begin_tests( bool_lit ).
+
+test( not_open_not_true,
+	  [ fail ]
+	) :-
+	bool_lit( [ not, '(', not, true ], _Out ),
+	!.
+
+test( not_open_not_false_close,
+	  [ Out == [] ]
+	) :-
+	bool_lit( [ not, '(', not, false, ')' ], Out ),
+	!.
+
+test( open_true,
+	  [ fail ]
+	) :-
+	bool_lit( [ '(', true ], _Out ),
+	!.
+
+test( open_true_close,
+	  [ Out == [] ]
+	) :-
+	bool_lit( [ '(', true, ')' ], Out ),
+	!.
+
+test( open_true_and_not_true_close_or_false,
+	  [ Out == [ or, false ] ]
+	) :-
+	bool_lit( [ '(', true, and, not, true, ')', or, false ], Out ),
+	!.
+
+:- end_tests( bool_lit ).
+
+%:- run_tests( bool_lit ).
+
+
+
+
+:- begin_tests( bool_lit_no_paren ).
+
+test( true,
+	  [ Out == [] ]
+	) :-
+	bool_lit( [ true ], Out ), 
+	!.
+
+test( false,
+	  [ Out == [] ]
+	) :-
+	bool_lit( [ false ], Out ),
+	!.
+
+test( true_close_and_false,
+	  [ Out == [ ')', and, false ] ]
+	) :-
+	bool_lit( [ true, ')', and, false ], Out ),
+	!.
+
+test( false_and_true,
+	  [ Out == [ and, true ] ]
+	) :-
+	bool_lit( [ false, and, true ], Out ),
+	!.
+
+test( not_true, 
+	  [ Out == [] ]
+	) :-
+	bool_lit( [ not, true ], Out ),
+	!.
+
+test( not_not_true,
+	  [ fail ]
+	) :-
+	bool_lit( [ not, not, true ], _Out ),
+	!.
+
+:- end_tests( bool_lit_no_paren ).
+
+%:- run_tests( bool_lit_no_paren ).
+
+
+
+
+:- begin_tests( bool_tf_no_paren ).
+
+test( true,
+	  [ Out == [] ]
+	) :-
+	bool_tf( [ true ], Out ), 
+	!.
+
+test( false,
+	  [ Out == [] ]
+	) :-
+	bool_tf( [ false ], Out ),
+	!.
+
+test( true_close_and_false,
+	  [ Out == [ ')', and, false ] ]
+	) :-
+	bool_tf( [ true, ')', and, false ], Out ),
+	!.
+
+test( false_and_true,
+	  [ Out == [ and, true ] ]
+	) :-
+	bool_tf( [ false, and, true ], Out ),
+	!.
+
+:- end_tests( bool_tf_no_paren ).
+
+%:- run_tests( bool_tf_no_paren ).
+
+
+
+
+:- begin_tests( bool_tf_with_paren ).
+
+test( open_true,
+	  [ fail ]
+	) :-
+	bool_tf( [ '(', true ], _Out ),
+	!.
+
+test( open_true_close,
+	  [ Out == [] ]
+	) :-
+	bool_tf( [ '(', true, ')' ], Out ),
+	!.
+
+test( open_true_and_true_close_or_false,
+	  [ Out == [ or, false ] ]
+	) :-
+	bool_tf( [ '(', true, and, true, ')', or, false ], Out ),
+	!.
+
+:- end_tests( bool_tf_with_paren ).
+
+%:- run_tests( bool_tf_with_paren ).
+
+
+
+
+:- run_tests.
