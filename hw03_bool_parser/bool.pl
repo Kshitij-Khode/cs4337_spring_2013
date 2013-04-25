@@ -427,62 +427,62 @@ test( not_not_true,
 
 
 
-:- begin_tests( bool_tf_no_paren ).
+:- begin_tests( bool_pos_lit_no_paren ).
 
 test( true,
 	  [ Out == [] ]
 	) :-
-	bool_tf( [ true ], Out ), 
+	bool_pos_lit( [ true ], Out ), 
 	!.
 
 test( false,
 	  [ Out == [] ]
 	) :-
-	bool_tf( [ false ], Out ),
+	bool_pos_lit( [ false ], Out ),
 	!.
 
 test( true_close_and_false,
 	  [ Out == [ ')', and, false ] ]
 	) :-
-	bool_tf( [ true, ')', and, false ], Out ),
+	bool_pos_lit( [ true, ')', and, false ], Out ),
 	!.
 
 test( false_and_true,
 	  [ Out == [ and, true ] ]
 	) :-
-	bool_tf( [ false, and, true ], Out ),
+	bool_pos_lit( [ false, and, true ], Out ),
 	!.
 
-:- end_tests( bool_tf_no_paren ).
+:- end_tests( bool_pos_lit_no_paren ).
 
-%:- run_tests( bool_tf_no_paren ).
-
-
+%:- run_tests( bool_pos_lit_no_paren ).
 
 
-:- begin_tests( bool_tf_with_paren ).
+
+
+:- begin_tests( bool_pos_lit_with_paren ).
 
 test( open_true,
 	  [ fail ]
 	) :-
-	bool_tf( [ '(', true ], _Out ),
+	bool_pos_lit( [ '(', true ], _Out ),
 	!.
 
 test( open_true_close,
 	  [ Out == [] ]
 	) :-
-	bool_tf( [ '(', true, ')' ], Out ),
+	bool_pos_lit( [ '(', true, ')' ], Out ),
 	!.
 
 test( open_true_and_true_close_or_false,
 	  [ Out == [ or, false ] ]
 	) :-
-	bool_tf( [ '(', true, and, true, ')', or, false ], Out ),
+	bool_pos_lit( [ '(', true, and, true, ')', or, false ], Out ),
 	!.
 
-:- end_tests( bool_tf_with_paren ).
+:- end_tests( bool_pos_lit_with_paren ).
 
-%:- run_tests( bool_tf_with_paren ).
+%:- run_tests( bool_pos_lit_with_paren ).
 
 
 
