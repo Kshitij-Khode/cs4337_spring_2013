@@ -34,7 +34,6 @@ import Control.Exception
 import Control.Monad
 import Control.DeepSeq
 
-import qualified Data.Map as Map
 import qualified Data.List as List
 
 import Test.HUnit
@@ -131,6 +130,8 @@ assertError name f =
 -- TODO: WRITE YOUR CODE HERE
 
 
+
+
 -- Test Cases
 -- ---------------------------------------------------------------------------
 
@@ -144,13 +145,13 @@ collatzListGen_test1 =
 {- NOTE: Currently, these test cases will cause compiler errors due to my use
  - of the DeepSeq module. These will be enabled once I finally figure out a
  - workaround.
- 
+-} 
 -- NOTE: When this test case is run, it may display that an error or failure
 -- occurred. If it does, please let me know.
 collatzListGen_test0 = 
     TestCase ( assertError
                     "collatzListGen 0"
-                    ( collatzListGen 0 )
+                    ( collatzListGen ( 0 :: Int ) )
              ) 
 
 -- NOTE: When this test case is run, it may display that an error or failure
@@ -158,9 +159,10 @@ collatzListGen_test0 =
 collatzListGen_testNeg8 = 
     TestCase ( assertError
                     "collatzListGen ( -8 )" 
-                    ( collatzListGen ( -8 ) )
+                    ( collatzListGen ( ( -8 ) :: Integer ) )
              )
--}
+{-
+ -}
 
 collatzListGen_test7 = 
     TestCase ( assertEqual
@@ -182,8 +184,8 @@ collatzListGen_test51 =
 
 collatzListGen_tests = 
     TestList [ collatzListGen_test1
---           , collatzListGen_test0
---           , collatzListGen_testNeg8
+             , collatzListGen_test0
+             , collatzListGen_testNeg8
              , collatzListGen_test7
              , collatzListGen_test51 
              ]
@@ -203,7 +205,34 @@ collatzListGen_tests =
 --   which could be defined similarly.
 data Tree a  =  Empty
              |  Node a (Tree a) (Tree a)
-             deriving Show
+             deriving (Show, Eq)
+
+
+-- | Show a 'Tree a' in a "pretty" format --- multi-line, indentation
+--   indicating subtrees.
+--
+showPretty :: Show a => Tree a -> String
+showPretty t =
+    showPrettyHelper t 0
+
+
+tabSize = 4
+
+showPrettyHelper :: Show a => Tree a -> Int -> String
+showPrettyHelper Empty x = 
+    ( replicate ( x * tabSize ) ' ' ) ++ "Empty"
+
+showPrettyHelper ( Node v tLeft tRight ) x =
+    ( replicate ( x * tabSize ) ' ' ) ++ "(Node " ++ ( show v ) ++ "\n"
+        ++ ( showPrettyHelper tLeft ( x + 1 ) ) ++ "\n"
+        ++ ( showPrettyHelper tRight ( x + 1 ) ) ++ "\n"
+        ++ ( replicate ( x * tabSize ) ' ' ) ++ ")"
+
+
+-- | Pretty-print a 'Tree a' to the console; uses 'showPretty' above.
+--
+prettyPrintTree :: Show a => Tree a -> IO ()
+prettyPrintTree = putStrLn . showPretty
 
 
 
@@ -253,6 +282,23 @@ createTree = foldl insertTree Empty
 
 
 
+-- Some sample data
+
+-- A tree containing integers
+intTree = createTree [ 9, 7, 2, 8, 6, 0, 5, 3, 1 ]
+
+-- A tree containing all permutations of a list of integers
+listTree = createTree ( List.permutations [ 0 .. 3 ] )
+
+-- A tree containing strings
+strTree = createTree [ "hello"
+                     , "world"
+                     , "lorem"
+                     , "ipsum"
+                     , "dolor"
+                     , "sit"
+                     , "amet"
+                     ]
 
 
 
@@ -277,23 +323,6 @@ createTree = foldl insertTree Empty
 -- Test Cases
 -- ----------------------------------------------------------------------------
 
--- Some sample data
-
--- A tree containing integers
-intTree = createTree [ 9, 7, 2, 8, 6, 0, 5, 3, 1 ]
-
--- A tree containing all permutations of a list of integers
-listTree = createTree ( List.permutations [ 0 .. 3 ] )
-
--- A tree containing strings
-strTree = createTree [ "hello"
-                     , "world"
-                     , "lorem"
-                     , "ipsum"
-                     , "dolor"
-                     , "sit"
-                     , "amet"
-                     ]
 
 memberTree_testIntEmpty =
     TestCase ( assertEqual
@@ -359,18 +388,51 @@ memberTree_testStrNotPresent =
              )
 
 
-memberTree_tests = TestList [ memberTree_testIntEmpty
-                            , memberTree_testIntPresent
-                            , memberTree_testIntNotPresent
-                            , memberTree_testListEmpty
-                            , memberTree_testListPresent
-                            , memberTree_testListNotPresent
-                            , memberTree_testStrEmpty
-                            , memberTree_testStrPresent
-                            , memberTree_testStrNotPresent
-                            ]
+memberTree_tests = 
+    TestList [ memberTree_testIntEmpty
+             , memberTree_testIntPresent
+             , memberTree_testIntNotPresent
+             , memberTree_testListEmpty
+             , memberTree_testListPresent
+             , memberTree_testListNotPresent
+             , memberTree_testStrEmpty
+             , memberTree_testStrPresent
+             , memberTree_testStrNotPresent
+             ]
 
 
+
+
+
+
+-- | An implementation of 'zipWith', for inspiration for the next function and
+--   for Problems 1 and 2.
+--
+myZipWith :: ( a -> b -> c ) -> [ a ] -> [ b ] -> [ c ]
+myZipWith _ [] _   =  []
+
+myZipWith _ _  []  =  []
+
+myZipWith fn ( x : xs ) ( y : ys ) =
+    ( fn x y ) : ( myZipWith fn xs ys )
+
+
+
+-- | A 'zipWith'-like function for Trees. If either Tree is empty, then return
+--   Empty
+--
+--   For inspiration for Problems 1 and 2.
+--
+zipWithTree :: ( Show a, Show b ) => 
+                    ( a -> b -> c ) -> Tree a -> Tree b -> Tree c
+zipWithTree _ Empty _      =  Empty
+
+zipWithTree _ _     Empty  =  Empty
+
+zipWithTree fn ( Node x t0Left t0Right ) ( Node y t1Left t1Right ) =
+    Node ( fn x y ) 
+        ( zipWithTree fn t0Left t1Left ) 
+        ( zipWithTree fn t0Right t1Right )
 
 
 
@@ -414,6 +476,192 @@ myMap fn ( x : xs )  =  ( fn x ) : ( myMap fn xs )
 
 
 
+-- Test Cases
+-- ----------------------------------------------------------------------------
+
+mapTree_testEmpty =
+    TestCase ( assertEqual
+                "mapTree (\\x -> x * 2) Empty"
+                Empty
+                ( mapTree (\x -> x * 2) Empty )
+             )
+
+mapTree_testIntDouble =
+    TestCase ( assertEqual
+                "mapTree (\\x -> x * 2) intTree"
+                (Node 18 
+                    (Node 14 
+                        (Node 4 
+                            (Node 0 
+                                Empty 
+                                (Node 2 
+                                    Empty 
+                                    Empty
+                                )
+                            ) 
+                            (Node 12 
+                                (Node 10 
+                                    (Node 6 
+                                        Empty 
+                                        Empty
+                                    ) 
+                                    Empty
+                                ) 
+                                Empty
+                            )
+                        ) 
+                        (Node 16 
+                            Empty 
+                            Empty
+                        )
+                    ) 
+                    Empty 
+                )
+                ( mapTree (\x -> x * 2) intTree )
+             )
+
+mapTree_testStringLength =
+    TestCase ( assertEqual 
+                "mapTree length strTree"
+                (Node 5
+                    (Node 5
+                        (Node 4
+                            Empty
+                            Empty
+                        )
+                        Empty
+                    )
+                    (Node 5
+                        (Node 5
+                            (Node 5
+                                Empty
+                                Empty
+                            )
+                            (Node 3
+                                Empty
+                                Empty
+                            )
+                        )
+                        Empty
+                    )
+                )
+                ( mapTree length strTree )
+            )
+                                
+
+
+-- | A small function for use in testing 'mapTree'. Can you work out what it's
+--   doing?
+--    *  'replicate :: Int -> a -> [a]' constructs a list of type 'a' by
+--       repeating a given element the provided number of times. In this case,
+--       it's going to construct a string of a's, b's, etc.
+--
+--    *  'flip :: (a -> b -> c) -> b -> a -> c' takes a function of two
+--       arguments and flips the order of the arguments. This is necessary
+--       because we know what character we want to replicate, but we don't
+--       know how many times, so we have to make it so the second argument is
+--       the number of repetitions.
+--
+--    *  'zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]' takes two lists and
+--       applies the function to the two elements at each position. If one
+--       list is longer than the other, the leftover elements are ignored.
+--        *  For convenience, I wrote a 'zipTreeWith' function above.
+--
+--    *  'concat :: [[a]] -> [a] takes a list of lists and concatenates them
+--       all together.
+--
+--    *  '(.) :: (b -> c) -> (a -> b) -> (a -> c)' is function composition.
+--
+buildString :: [ Int ] -> String
+buildString = concat . zipWith ( flip replicate ) [ 'a' .. 'z' ]
+
+
+mapTree_testListBuildString =
+    TestCase ( assertEqual
+                "mapTree buildString listTree"
+                (Node "bccddd"
+                    Empty
+                    (Node "accddd"
+                        (Node "bbcddd"
+                            (Node "bcccdd"
+                                Empty
+                                Empty
+                            )
+                            (Node "bbbcdd"
+                                (Node "bbcccd"
+                                    Empty
+                                    Empty
+                                )
+                                (Node "bbbccd"
+                                    Empty
+                                    Empty
+                                )
+                            )
+                        )
+                        (Node "aabddd"
+                            (Node "abbddd"
+                                (Node "acccdd"
+                                    Empty
+                                    Empty
+                                )
+                                (Node "aacddd"
+                                    (Node "abbbcc"
+                                        (Node "abbccc"
+                                            Empty
+                                            (Node "abbbdd"
+                                                Empty
+                                                Empty
+                                            )
+                                        )
+                                        Empty
+                                    )
+                                    (Node "aacccd"
+                                        Empty
+                                        Empty
+                                    )
+                                )
+                            )
+                            (Node "aaabbc"
+                                (Node "aabbbc"
+                                    (Node "aabccc"
+                                        Empty
+                                        (Node "aabbbd"
+                                            Empty
+                                            Empty
+                                        )
+                                    )
+                                    (Node "aaabcc"
+                                        (Node "aaacdd"
+                                            Empty
+                                            (Node "aaabdd"
+                                                (Node "aaaccd"
+                                                    Empty
+                                                    Empty
+                                                )
+                                                Empty
+                                            )
+                                        )
+                                        (Node "aaabbd"
+                                            Empty
+                                            Empty
+                                        )
+                                    )
+                                )
+                                Empty
+                            )
+                        )
+                    )
+                )
+                ( mapTree buildString listTree )
+             )
+
+mapTree_tests = 
+    TestList [ mapTree_testEmpty
+             , mapTree_testIntDouble
+             , mapTree_testStringLength
+             , mapTree_testListBuildString
+             ]
+
 
 
 
@@ -454,12 +702,52 @@ myFoldl fn x ( y : ys )  =  myFoldl fn ( fn x y ) ys
  - processes the root node, then processes the right subtree.
  -}
 
+-- | Fold the values stored in a 'Tree a' with a function 'fn' and an initial
+--   value 'x'. Uses an in-order traversal of the tree.
+
 -- TODO: WRITE YOUR CODE HERE
 
 
 
 
 
+-- Test Cases
+-- ----------------------------------------------------------------------------
+
+foldInOrder_testEmpty =
+    TestCase ( assertEqual
+                "foldInOrder (+) 0 Empty"
+                0
+                ( foldInOrder (+) 0 Empty )
+             )
+
+foldInOrder_testInt =
+    TestCase ( assertEqual
+                "foldInOrder (+) 10 intTree"
+                51
+                ( foldInOrder (+) 10 intTree )
+             )
+
+foldInOrder_testList =
+    TestCase ( assertEqual
+                "foldInOrder (\\x y -> x ++ ( buildString y ) ) \"\" listTree"
+                "bccdddbcccddbbcdddbbcccdbbbcddbbbccdaccdddacccddabbdddabbcccabbbddabbbccaacdddaacccdaabdddaabcccaabbbdaabbbcaaacddaaaccdaaabddaaabccaaabbdaaabbc"
+                ( foldInOrder (\x y -> x ++ ( buildString y ) ) "" listTree )
+             )
+
+foldInOrder_testString =
+    TestCase ( assertEqual
+                "foldInOrder (++) \"goodbye\" strTree"
+                "goodbyeametdolorhelloipsumloremsitworld"
+                ( foldInOrder (++) "goodbye" strTree )
+             )
+
+foldInOrder_tests =
+    TestList [ foldInOrder_testEmpty
+             , foldInOrder_testInt
+             , foldInOrder_testList
+             , foldInOrder_testString
+             ]
 
 
 
@@ -475,5 +763,12 @@ main = do
     runTestTT memberTree_tests
     putStrLn ""
 
+    putStrLn "Running 'mapTree' tests"
+    runTestTT mapTree_tests
+    putStrLn ""
+
+    putStrLn "Running 'foldInOrder' tests"
+    runTestTT foldInOrder_tests
+    putStrLn ""
 
 
