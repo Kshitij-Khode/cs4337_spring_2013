@@ -5,7 +5,7 @@
  -
  - Assignment 4:   Type Classes and Higher Order Functions
  - Assigned:       Monday, 2013-04-29
- - Due:            Sunday, 2013-05-05, 23:59 (11:59pm)
+ - Due:            Wednesday, 2013-05-08, 23:59 (11:59pm) (NO LATE PERIOD!)
  - Estimated SLOC: 20
  -
  -
