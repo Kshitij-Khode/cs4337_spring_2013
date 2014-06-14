@@ -1,5 +1,5 @@
-/* Author: TODO: WRITE YOUR NAME HERE
- * Email:  TODO: WRITE YOUR EMAIL HERE
+/* Author: TODO: Kshitij Khode
+ * Email:  TODO: kxk113730@utdallas.edu
  *
  * CS / CE 4337 Spring 2013 Sections 001, 002
  *
@@ -295,6 +295,18 @@
 
 % TODO: WRITE YOUR CODE HERE
 
+collatz_list(1, [1]).
+
+collatz_list(N, [N|T]) :-
+    N #> 1,
+	N mod 2 =:= 0,
+    H is N // 2,
+    collatz_list(H, T).
+
+collatz_list(N, [N|T]) :-
+	N #> 1,
+	H is 3 * N + 1,
+    collatz_list(H, T).
 
 
 
@@ -406,6 +418,11 @@ test( collatz_list_51,
 
 % TODO: WRITE YOUR CODE HERE
 
+my_subset([], _N).
+
+my_subset([H | T], L) :-
+	member(H, L),
+	my_subset(T, L).
 
 
 
@@ -486,6 +503,15 @@ test( my_subset_close_fail,
 
 % TODO: WRITE YOUR CODE HERE
 
+my_intersection([X|Y],M,[X|Z]) :- 
+	member(X,M), 
+	my_intersection(Y,M,Z).
+
+my_intersection([X|Y],M,Z) :- 
+	\+ member(X,M),
+	my_intersection(Y,M,Z).
+
+my_intersection([],_M,[]).
 
 
 
@@ -571,7 +597,40 @@ test( my_intersection_full,
 
 % TODO: WRITE YOUR CODE HERE
 
+int_digit_list(_X, []) :- false.
 
+int_digit_list(X,Y):-
+	X #>= 0,
+	int_digit_list2(X,Z),
+	reverse(Z, Z1),
+	length(Y,L),
+	add(L,Y,0,X),
+	compare(Y,Z1),
+	no_negative(Y).
+	
+no_negative([H|_T]) :-
+	H #>= 0.
+
+int_digit_list2(0,[]).
+
+int_digit_list2(N, [H|T]):-
+	H #= N mod 10,
+	N1#=N/10,
+	int_digit_list2(N1,T).	
+
+compare([],[]).
+
+compare([A|B], [C|D]):- 
+	A #= C,
+	compare(B,D).
+
+add(L,[A|B], PartialSum, Sum):-
+		L#>0,
+		NewPartial#=10^(L-1)*A+PartialSum,
+		L1 #= L-1,
+		add(L1, B, NewPartial, Sum).
+
+add(0, [], PartialSum, PartialSum).
 
 
 :- begin_tests( int_digit_list ).
@@ -586,7 +645,7 @@ test( int_digit_list_1,
 test( int_digit_list_neg1,
       [ fail ]
     ) :-
-    int_digit_list( _Num, [ -1 ] ),
+    int_digit_list( -1, _Num ),
     !.
 
 test( int_digit_list_12345,
