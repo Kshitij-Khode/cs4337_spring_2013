@@ -1,5 +1,5 @@
-/* Author: TODO: WRITE YOUR NAME HERE
- * Email:  TODO: WRITE YOUR EMAIL HERE
+/* Author: Kshitij Khode
+ * Email:  kxk113730@utdallas.edu
  *
  * CS / CE 4337 Spring 2013 Sections 001, 002
  *
@@ -151,18 +151,26 @@
 
 % TODO: WRITE YOUR CODE HERE
 
+bool_expr --> bool_conj, ['or'], bool_conj, bool_expr2.
+bool_expr --> bool_conj.
 
+bool_expr2 --> ['or'], bool_conj, bool_expr2.
+bool_expr2 -->[].
 
 /**
  * bool_conj //
  * 
  * Matches a BoolConj:
- *     BoolConj ::= BoolLit { "and" BoolLit }.
+ *     Bool_conj ::= Bool_lit { "and" BoolLit }.
  */
 
 % TODO: WRITE YOUR CODE HERE
 
+bool_conj --> bool_lit, ['and'], bool_lit, bool_conj2.
+bool_conj --> bool_lit.
 
+bool_conj2 --> ['and'], bool_lit, bool_conj2.
+bool_conj2 --> [].
 
 /**
  * bool_lit //
@@ -173,7 +181,8 @@
 
 % TODO: WRITE YOUR CODE HERE
 
-
+bool_lit --> ['not'], bool_pos_lit.
+bool_lit --> bool_pos_lit.
 
 /**
  * bool_pos_lit //
@@ -187,7 +196,9 @@
 
 % TODO: WRITE YOUR CODE HERE
 
-
+bool_pos_lit --> ['true'].
+bool_pos_lit --> ['false'].
+bool_pos_lit --> ['('], bool_expr, [')'].
 
 
 % =============================================================================
