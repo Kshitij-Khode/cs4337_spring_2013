@@ -1,5 +1,5 @@
-{- Author: TODO: WRITE YOUR NAME HERE
- - Email:  TODO: WRITE YOUR EMAIL HERE
+{- Author: TODO: Kshitij Khode
+ - Email:  TODO: kxk11370@utdallas.edu
  -
  - CS / CE 4337 Spring 2013 Sections 001, 002
  -
@@ -129,8 +129,16 @@ assertError name f =
 
 -- TODO: WRITE YOUR CODE HERE
 
+collatzListGen :: (Integral i) => i -> [i]
+collatzListGen x
+	| x == 1 = [x]
+	| otherwise = x:collatzListGen (collatz x)	
 
-
+collatz :: (Integral i) => i -> i
+collatz x
+	|	x < 1 = error "Only Positive Integers Allowed"
+	|	(x`mod`2 == 0) = x`div`2
+	|	(x`mod`2 == 1) = (3*x) + 1
 
 -- Test Cases
 -- ---------------------------------------------------------------------------
@@ -317,8 +325,14 @@ strTree = createTree [ "hello"
 
 -- TODO: WRITE YOUR CODE HERE
 
+memberTree :: (Ord a, Show a) => a -> Tree a -> Bool
 
+memberTree x Empty = False
 
+memberTree x (Node v l r)
+	|	x == v = True
+	|	x < v = False || (memberTree x l)
+	|	x > v = False || (memberTree x r)
 
 -- Test Cases
 -- ----------------------------------------------------------------------------
@@ -473,8 +487,11 @@ myMap fn ( x : xs )  =  ( fn x ) : ( myMap fn xs )
 
 -- TODO: WRITE YOUR CODE HERE
 
+mapTree :: (Show a, Show b) => (a -> b) -> Tree a -> Tree b
 
+mapTree _ Empty = Empty
 
+mapTree fn (Node n l r) = (Node (fn n)) (mapTree fn l) (mapTree fn r)
 
 -- Test Cases
 -- ----------------------------------------------------------------------------
@@ -707,9 +724,11 @@ myFoldl fn x ( y : ys )  =  myFoldl fn ( fn x y ) ys
 
 -- TODO: WRITE YOUR CODE HERE
 
+foldInOrder :: (a -> b -> a) -> a -> Tree b -> a
 
+foldInOrder _ x Empty = x
 
-
+foldInOrder fn x (Node n l r) = foldInOrder fn (fn (foldInOrder fn x l) n) r
 
 -- Test Cases
 -- ----------------------------------------------------------------------------
